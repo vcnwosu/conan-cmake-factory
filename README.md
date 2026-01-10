@@ -41,23 +41,28 @@ After cloning the repo, we simply run the pipeline script. It will build the Doc
 
 The goal, run it once and it builds successfully. Run it again, and we should get a cache hit, due to the `ccache -s` execution, and compilation should be practically instant.
 
-Basically, the first time around, we should see this snippet in the output, showing the sample app getting compiled.
+Basically, the first time around, we should see ccache stats that look like this.
 
 ```
--- Generating done
--- Build files have been written to: /app/build
-[ 50%] Building CXX object CMakeFiles/robot_node.dir/src/robot_node.cpp.o
-[100%] Linking CXX executable robot_node
-[100%] Built target robot_node
+--- Ccache Stats ---
+Summary:
+  Hits:               0 /    1 (0.00 %)
+    Direct:           0 /    1 (0.00 %)
+    Preprocessed:     0 /    1 (0.00 %)
+  Misses:             1
+    Direct:           1
+    Preprocessed:     1
+Primary storage:
+  Hits:               0 /    2 (0.00 %)
+  Misses:             2
+  Cache size (GB): 0.00 / 5.00 (0.00 %)
 ```
 
-Then the second time, we should see the following, indicating Ccache prevented us from unnecessarily recompiling the sample app.
+Of course, we get cache misses, because this is the first time we are compiling the sample app. Now, modify the sample app however you like. Maybe add a `std::cout` statement, or comment out some lines, etc. Even if you break the app (make a change that will fail to compile). Then execute `./run_build.sh` again and check out the *Ccache Stats* and see we have another miss (as expected).
 
-```
--- Build files have been written to: /app/build
-Consolidate compiler generated dependencies of target robot_node
-[100%] Built target robot_node
-```
+Then revert your changes and execute `./run_build.sh` yet again, and notice the cache hit.
+
+There we have it. A basic, reproducible Conan/CMake build system with build optimization from ccache.
 
 ## Project structure
 
