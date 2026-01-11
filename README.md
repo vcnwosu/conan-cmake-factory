@@ -107,7 +107,7 @@ Optionally, if you want to view what the full deployment will look like before d
 
 Provision the cluster with `terraform apply`. This will create the local multi-node Kubernetes cluster, deploy the Kubernetes pod which will launch the `robotics-builder:latest` Docker image which we created earlier and then run our CMake build. 
 
-The result should be the same. We should see the `build` and `cache` folders populated and the `robotics-builder:latest` container should terminate after the CMake build is complete.
+The result should be the same. We should see the `build` and `cache` folders populated and the `robotics-builder:latest` container should terminate after the CMake build is complete. Bear in mind, this is for demonstration purposes. For a more robust system, we would want to keep the pod and the container alive. If instead we really wanted to go for a "run once and exit" approach, we would be better off running a job resource than a pod resource.
 
 We can confirm the build by checking `build/build.log` which will have the output for what was executed in the pod.
 
