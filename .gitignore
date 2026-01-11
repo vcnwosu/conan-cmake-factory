@@ -1,3 +1,6 @@
 CMakeUserPresets.json
 build/
 cache/
+iaac/.terraform*
+iaac/*-config
+iaac/*tfstate*

@@ -72,6 +72,10 @@ There we have it. A basic, reproducible Conan/CMake build system with build opti
 ├── Dockerfile
 ├── README.md
 ├── conanfile.txt
+├── execute.sh
+├── iaac
+│   ├── main.tf
+│   └── terraform.tf
 ├── run_build.sh
 └── src
     └── robot_node.cpp
@@ -79,3 +83,36 @@ There we have it. A basic, reproducible Conan/CMake build system with build opti
 1 directory, 6 files
 ```
 
+## Optional: Simulate Deployment on a Kubernetes Cluster
+
+In the interest of exploring more end-to-end CI, I've included some terraform configuration files under `iaac/terraform.tf` and `iaac/main.tf`. This essentially simulates the end-to-end Infrastructure as Code that will provision a Kubernetes cluster and deploy an Ubuntu pod without any manual intervention. The pod has access to a shared build cache (backed by a host path), utilizing Kubernete's PersistentVolume and PersistentVolumeClaim functionality.
+
+### How to Run
+
+The following will be needed on your host.
+
+- *Terraform* 1.14 or later
+- *Kind* to create and manage a local multi-node Kubernetes cluster
+- *Docker* for launching a generic Ubuntu pod
+- *Kubectl* for CLI interaction with the cluster
+
+Once all prerequisites are installed, initialize Terraform to download all necessary provider dependences.
+
+```
+cd iaac
+terraform init
+```
+
+Optionally, if you want to view what the full deployment will look like before deploying run `terraform plan`. 
+
+Provision the cluster with `terraform apply`. This will create the local multi-node Kubernetes cluster, deploy the Kubernetes pod which will launch the `robotics-builder:latest` Docker image which we created earlier and then run our CMake build. 
+
+The result should be the same. We should see the `build` and `cache` folders populated and the `robotics-builder:latest` container should terminate after the CMake build is complete.
+
+We can confirm the build by checking `build/build.log` which will have the output for what was executed in the pod.
+
+#### The PersistentVolume Configuration
+
+The PersistentVolume configuration is important here. We care about having an optimized build, which means we need ccache to be able run, as well as be available during the lifetime of the pod and well after that lifetime. We want ccache to be available each time we launch a new container to build a change to our `robot_node.cpp`.
+
+For demonstration purposes, we have the PersistentVolume configured against a host path for demonstration, but there are many other options for configuring a PersistentVolume, depending on your pipeline/cluster needs. 
